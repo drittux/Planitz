@@ -12,9 +12,6 @@ let camera = {
 };
 
 const G = 0.1;
-let speed = 100;
-
-
 
 //Planets
 class CelestialBody {
@@ -60,8 +57,8 @@ class CelestialBody {
       this.yvel += (force * dy) / (distance * this.mass);
     }
 
-    this.x += this.xvel * speed;
-    this.y += this.yvel * speed;
+    this.x += this.xvel;
+    this.y += this.yvel;
   }
 }
 
