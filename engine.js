@@ -4,127 +4,82 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 let celestialBodies = [];
-let camera = {
-  x: 0 - (canvas.width / 2) * 2,
-  y: 0 - (canvas.height / 2) * 2,
-  zoom: 0.75,
-  focusedPlanet: 0,
-};
+let zoom = 1;
+let focusedIndex = 0;
 
-const G = 0.1;
-let gameClock = 0;
-
-//Planets
 class CelestialBody {
   constructor(r, theta, orbitSpeed, parent, mass, color, name) {
     this.r = r;
     this.theta = theta;
-
-    this.parent = parent;
-
-    this.x = Math.sin(this.theta) * this.r + this.parent.x;
-    this.y = Math.cos(this.theta) * this.r + this.parent.y;
-
     this.orbitSpeed = orbitSpeed;
+    this.parent = parent;
     this.mass = mass;
     this.radius = Math.sqrt(mass / Math.PI) * 10;
     this.color = color;
     this.name = name;
-
+    this.x = 0;
+    this.y = 0;
     celestialBodies.push(this);
   }
 
   update() {
-    //set X & Y
     this.x = Math.sin(this.theta) * this.r + this.parent.x;
     this.y = Math.cos(this.theta) * this.r + this.parent.y;
+    this.theta += this.orbitSpeed;
+  }
 
-    //Draw
+  draw() {
     ctx.beginPath();
-    ctx.arc(
-      (this.x - camera.x) * camera.zoom,
-      (this.y - camera.y) * camera.zoom,
-      this.radius * camera.zoom,
-      0,
-      2 * Math.PI
-    );
+    ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
     ctx.fillStyle = this.color;
     ctx.fill();
-
-    //Move
-    this.theta += this.orbitSpeed;
-
-    gameClock++;
   }
 }
 
-//define planets
-//r, theta, orbitSpeed, parent, mass, color, name
-let snarplux = new CelestialBody(
-  0,
-  0,
-  5,
-  { x: 0, y: 0 },
-  30,
-  "gold",
-  "snarplux"
-);
-let snarplax = new CelestialBody(
-  5000,
-  0,
-  0.0115,
-  snarplux,
-  2,
-  "blue",
-  "snarplax"
-);
-let moon = new CelestialBody(100, 0, 0.022, snarplax, 0.02, "grey", "moon");
+// Bodies
+let snarplux = new CelestialBody(0, 0, 0, { x: 0, y: 0 }, 30, "gold", "snarplux");
+let snarplax = new CelestialBody(5000, 0, 0.0000115, snarplux, 2, "blue", "snarplax");
+let moon = new CelestialBody(100, 0, 0.000022, snarplax, 0.02, "gray", "moon");
 
+focusedIndex = celestialBodies.findIndex(b => b.name === "moon");
 
-camera.focusedPlanet = celestialBodies.findIndex(body => body.name === "moon");
-
-//swap bodies
-document.addEventListener("keydown", (e) => {
-  //zoom
-  if (e.key === "=") camera.zoom *= 1.1;
-  if (e.key === "-") camera.zoom *= 0.9;
-
-  //switch body
-  if (e.key === "[") camera.focusedPlanet--;
-  else if (e.key === "]") camera.focusedPlanet++;
-
-  // wraparound logic to keep index within bounds
-  if (camera.focusedPlanet < 0) {
-    camera.focusedPlanet = celestialBodies.length - 1;
-  } else if (camera.focusedPlanet >= celestialBodies.length) {
-    camera.focusedPlanet = 0;
-  }
+// Controls
+document.addEventListener("keydown", e => {
+  if (e.key === "=") zoom *= 1.1;
+  if (e.key === "-") zoom *= 0.9;
+  if (e.key === "[") focusedIndex = (focusedIndex - 1 + celestialBodies.length) % celestialBodies.length;
+  if (e.key === "]") focusedIndex = (focusedIndex + 1) % celestialBodies.length;
 });
 
-//game loop
-function updateAll() {
-  for (let i = 0; i < celestialBodies.length; i++) {
-    celestialBodies[i].update();
-  }
-}
-
 function gameLoop() {
+  // Update simulation
+  celestialBodies.forEach(body => body.update());
+
+  let focus = celestialBodies[focusedIndex];
+
+  // Clear screen (screen space)
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = "#0A1A35";
-  ctx.fillRect(-10, -10, canvas.width + 20, canvas.height + 20);
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  let focus = celestialBodies[camera.focusedPlanet];
+  // Calculate and apply transform to center focused body
+  ctx.setTransform(
+    zoom, 0, 0,
+    zoom,
+    canvas.width / 2 - focus.x * zoom,
+    canvas.height / 2 - focus.y * zoom
+  );
 
-  camera.x = focus.x - canvas.width / 2 / camera.zoom;
-  camera.y = focus.y - canvas.height / 2 / camera.zoom;
-  
-  updateAll();
+  // Draw all bodies in world space
+  celestialBodies.forEach(body => body.draw());
 
-  //gui
+  // UI Layer
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = "#d9d9d9";
   ctx.fillRect(0, 0, canvas.width, canvas.height / 10);
-  ctx.font = "20px arial";
+  ctx.font = "20px Arial";
   ctx.fillStyle = "#009900";
-  ctx.fillText(focus.name, canvas.height / 40, canvas.height / 20);
+  ctx.fillText(focus.name, 20, 30);
 }
 
-setInterval(gameLoop, 60);
+setInterval(gameLoop, 1000 / 60);
