@@ -23,16 +23,22 @@ class CelestialBody {
   }
 
   update() {
-    this.x = Math.sin(this.theta) * this.r + this.parent.x;
-    this.y = Math.cos(this.theta) * this.r + this.parent.y;
+    this.x = Math.sin(this.theta) * this.r + this.parent.x
+    this.y = Math.cos(this.theta) * this.r + this.parent.y
     this.theta += this.orbitSpeed;
   }
 
   draw() {
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-    ctx.fillStyle = this.color;
-    ctx.fill();
+    ctx.beginPath()
+    ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI)
+    ctx.fillStyle = this.color
+    ctx.fill()
+
+    ctx.beginPath()
+    ctx.arc(this.parent.x, this.parent.y, this.r, 0, 2*Math.PI);
+    ctx.lineWidth = 1 / zoom
+    ctx.strokeStyle = this.color
+    ctx.stroke()
   }
 }
 
