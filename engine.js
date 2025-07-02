@@ -6,6 +6,8 @@ canvas.height = window.innerHeight;
 let celestialBodies = [];
 let zoom = 1;
 let focusedIndex = 0;
+let timeWarp = 1;
+//TODO add timewarp GUI
 
 class CelestialBody {
   constructor(r, theta, orbitSpeed, parent, mass, color, name) {
@@ -25,7 +27,7 @@ class CelestialBody {
   update() {
     this.x = Math.sin(this.theta) * this.r + this.parent.x
     this.y = Math.cos(this.theta) * this.r + this.parent.y
-    this.theta += this.orbitSpeed;
+    this.theta += this.orbitSpeed * timeWarp;
   }
 
   draw() {
@@ -35,7 +37,7 @@ class CelestialBody {
     ctx.fill()
 
     ctx.beginPath()
-    ctx.arc(this.parent.x, this.parent.y, this.r, 0, 2*Math.PI);
+    ctx.arc(this.parent.x, this.parent.y, this.r, 0, 2 * Math.PI);
     ctx.lineWidth = 1 / zoom
     ctx.strokeStyle = this.color
     ctx.stroke()
@@ -46,6 +48,27 @@ class CelestialBody {
 let snarplux = new CelestialBody(0, 0, 0, { x: 0, y: 0 }, 30, "gold", "snarplux");
 let snarplax = new CelestialBody(5000, 0, 0.0000115, snarplux, 2, "blue", "snarplax");
 let moon = new CelestialBody(100, 0, 0.000022, snarplax, 0.02, "gray", "moon");
+
+let player = {
+  x: 0, y: 0,
+  xVel: 1, yVel: 0,
+  name:"you",
+  draw: function() {
+    ctx.fillStyle = "red"
+    ctx.fillRect(player.x-5, player.y-5, 10, 10)
+  },
+  update: function() {
+    //TODO add gravity
+
+    this.x += this.xVel * timeWarp
+    this.y += this.yVel * timeWarp
+
+    //TODO add controls
+    //TODO trace predicted orbit
+  }
+}
+
+celestialBodies.push(player)
 
 focusedIndex = celestialBodies.findIndex(b => b.name === "moon");
 
