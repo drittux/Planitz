@@ -46,19 +46,48 @@ class CelestialBody {
 
 // Bodies
 let snarplux = new CelestialBody(0, 0, 0, { x: 0, y: 0 }, 30, "gold", "snarplux");
+
+let heet = new CelestialBody(3000, 0, 0.000023, snarplux, 2, "brown", "heet");
+
 let snarplax = new CelestialBody(5000, 0, 0.0000115, snarplux, 2, "blue", "snarplax");
 let moon = new CelestialBody(100, 0, 0.000022, snarplax, 0.02, "gray", "moon");
 
 let player = {
-  x: 0, y: 0,
-  xVel: 1, yVel: 0,
-  name:"you",
-  draw: function() {
+  x: 0, y: 5110,
+  xVel: .1, yVel: 0,
+  name: "you",
+  follow: snarplax,
+  draw: function () {
     ctx.fillStyle = "red"
-    ctx.fillRect(player.x-5, player.y-5, 10, 10)
+    ctx.fillRect(this.x - .1, this.y - .1, .2, .2)
   },
-  update: function() {
-    //TODO add gravity
+
+  update: function () {
+    for (let body of celestialBodies) {
+      if (body === player) continue; // skip self
+
+      let dx = body.x - this.x;
+      let dy = body.y - this.y;
+      let distSq = dx * dx + dy * dy;
+      let dist = Math.sqrt(distSq);
+
+      // Prevent divide-by-zero
+      if (dist < 1) dist = 1;
+
+      // Gravity constant, tweak as needed
+      const G = 0.1;
+
+      // Calculate force magnitude
+      let force = (G * body.mass) / distSq;
+
+      // Normalize direction and apply acceleration
+      let ax = force * dx / dist;
+      let ay = force * dy / dist;
+
+      // Update velocity
+      this.xVel += ax * timeWarp;
+      this.yVel += ay * timeWarp;
+    }
 
     this.x += this.xVel * timeWarp
     this.y += this.yVel * timeWarp
