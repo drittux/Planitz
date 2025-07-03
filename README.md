@@ -1,5 +1,6 @@
-# Planitz
-A JavaScript based space simulation game in development.
+# Planitz Old
+A JavaScript based space simulation game.
+Planitz modern is in development.
 
 ## controls
 use = & - to zoom in & out.
